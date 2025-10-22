@@ -86,26 +86,32 @@ function displayLeads(leads) {
         const statusClass = getStatusClass(lead.Status);
         
         return `
-            <tr data-row="${rowNum}">
+            <tr data-row="${rowNum}" id="row-${rowNum}">
                 <td class="star-cell" onclick="toggleStar(${rowNum})">
                     ${lead.Important || ''}
                 </td>
-                <td><strong>${escapeHtml(lead.Institution)}</strong></td>
-                <td>${escapeHtml(lead['Contact Person'])}</td>
-                <td>${escapeHtml(lead.Phone)}</td>
-                <td>${escapeHtml(lead.Email || '-')}</td>
-                <td><span class="status-badge ${statusClass}">${lead.Status}</span></td>
-                <td>${lead['Follow-up Date'] || '-'}</td>
-                <td>${truncate(lead.Requirements, 50)}</td>
-                <td>${truncate(lead['Proposal Shared'], 40)}</td>
-                <td>${truncate(lead.Remarks, 50)}</td>
-                <td><em>${escapeHtml(lead['Added By'] || 'Unknown')}</em></td>
+                <td data-field="Institution"><strong>${escapeHtml(lead.Institution)}</strong></td>
+                <td data-field="Contact Person">${escapeHtml(lead['Contact Person'])}</td>
+                <td data-field="Phone">${escapeHtml(lead.Phone)}</td>
+                <td data-field="Email">${escapeHtml(lead.Email || '-')}</td>
+                <td data-field="Status"><span class="status-badge ${statusClass}">${lead.Status}</span></td>
+                <td data-field="Follow-up Date">${lead['Follow-up Date'] || '-'}</td>
+                <td data-field="Requirements">${truncate(lead.Requirements, 50)}</td>
+                <td data-field="Proposal Shared">${truncate(lead['Proposal Shared'], 40)}</td>
+                <td data-field="Remarks">${truncate(lead.Remarks, 50)}</td>
+                <td data-field="Added By"><em>${escapeHtml(lead['Added By'] || 'Unknown')}</em></td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn-edit" onclick="editLead(${rowNum})">
+                        <button class="btn-edit" onclick="enableInlineEdit(${rowNum})" id="edit-btn-${rowNum}">
                             ✏️ Edit
                         </button>
-                        <button class="btn btn-danger btn-small" onclick="deleteLead(${rowNum})">
+                        <button class="btn btn-save" onclick="saveInlineEdit(${rowNum})" id="save-btn-${rowNum}" style="display:none;">
+                            💾 Save
+                        </button>
+                        <button class="btn-cancel" onclick="cancelInlineEdit(${rowNum})" id="cancel-btn-${rowNum}" style="display:none;">
+                            ❌
+                        </button>
+                        <button class="btn btn-danger btn-small" onclick="deleteLead(${rowNum})" id="delete-btn-${rowNum}">
                             🗑️
                         </button>
                     </div>
@@ -254,89 +260,126 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// Edit lead
-async function editLead(rowNum) {
+// Store original row data for cancel functionality
+let originalRowData = {};
+
+// Enable inline editing for a row
+async function enableInlineEdit(rowNum) {
+    const row = document.getElementById(`row-${rowNum}`);
+    const cells = row.querySelectorAll('td[data-field]');
+    
+    // Store original data for cancel
+    originalRowData[rowNum] = {};
+    
+    cells.forEach(cell => {
+        const field = cell.getAttribute('data-field');
+        const currentValue = cell.textContent.trim();
+        originalRowData[rowNum][field] = currentValue;
+        
+        // Create appropriate input based on field
+        let input;
+        
+        if (field === 'Status') {
+            input = document.createElement('select');
+            input.className = 'inline-edit-select';
+            const options = ['New Lead', 'Contacted', 'Interested', 'Proposal Sent', 'Negotiating', 'Closed Won', 'Closed Lost'];
+            options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt;
+                option.textContent = opt;
+                if (currentValue === opt) option.selected = true;
+                input.appendChild(option);
+            });
+        } else if (field === 'Follow-up Date') {
+            input = document.createElement('input');
+            input.type = 'date';
+            input.className = 'inline-edit-input';
+            input.value = currentValue !== '-' ? currentValue : '';
+        } else if (field === 'Requirements' || field === 'Proposal Shared' || field === 'Remarks') {
+            input = document.createElement('textarea');
+            input.className = 'inline-edit-textarea';
+            input.value = currentValue !== '-' ? currentValue : '';
+            input.rows = 2;
+        } else {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'inline-edit-input';
+            input.value = currentValue !== '-' ? currentValue : '';
+        }
+        
+        cell.innerHTML = '';
+        cell.appendChild(input);
+    });
+    
+    // Toggle buttons
+    document.getElementById(`edit-btn-${rowNum}`).style.display = 'none';
+    document.getElementById(`save-btn-${rowNum}`).style.display = 'inline-block';
+    document.getElementById(`cancel-btn-${rowNum}`).style.display = 'inline-block';
+    document.getElementById(`delete-btn-${rowNum}`).style.display = 'none';
+    
+    // Highlight row
+    row.classList.add('editing-row');
+}
+
+// Save inline edit
+async function saveInlineEdit(rowNum) {
+    const row = document.getElementById(`row-${rowNum}`);
+    const cells = row.querySelectorAll('td[data-field]');
+    
+    // Collect data
+    const formData = new FormData();
+    
+    cells.forEach(cell => {
+        const field = cell.getAttribute('data-field');
+        const input = cell.querySelector('input, select, textarea');
+        const value = input ? input.value : '';
+        
+        // Map field names to API parameters
+        const fieldMap = {
+            'Institution': 'institution',
+            'Contact Person': 'contact_person',
+            'Phone': 'phone',
+            'Email': 'email',
+            'Status': 'status',
+            'Follow-up Date': 'followup_date',
+            'Requirements': 'requirements',
+            'Proposal Shared': 'proposal_shared',
+            'Remarks': 'remarks',
+            'Added By': 'added_by'
+        };
+        
+        formData.append(fieldMap[field], value);
+    });
+    
     try {
-        // Fetch lead data
-        const response = await fetch(`/api/leads/${rowNum}`);
+        const response = await fetch(`/api/leads/${rowNum}`, {
+            method: 'PUT',
+            body: formData
+        });
+        
         const result = await response.json();
         
         if (result.success) {
-            const lead = result.data;
-            
-            // Populate edit form
-            document.getElementById('edit-row-num').value = rowNum;
-            document.getElementById('edit-institution').value = lead.Institution || '';
-            document.getElementById('edit-contact_person').value = lead['Contact Person'] || '';
-            document.getElementById('edit-phone').value = lead.Phone || '';
-            document.getElementById('edit-email').value = lead.Email || '';
-            document.getElementById('edit-status').value = lead.Status || 'New Lead';
-            document.getElementById('edit-followup_date').value = lead['Follow-up Date'] || '';
-            document.getElementById('edit-requirements').value = lead.Requirements || '';
-            document.getElementById('edit-proposal_shared').value = lead['Proposal Shared'] || '';
-            document.getElementById('edit-remarks').value = lead.Remarks || '';
-            document.getElementById('edit-added_by').value = lead['Added By'] || '';
-            
-            // Show modal
-            document.getElementById('edit-modal').classList.add('show');
+            showToast('✅ Lead updated successfully!');
+            loadLeads();
+            loadStats();
         } else {
-            showToast('Error loading lead data', 'error');
+            showToast('❌ Error updating lead', 'error');
+            cancelInlineEdit(rowNum);
         }
     } catch (error) {
         console.error('Error:', error);
-        showToast('Error loading lead data', 'error');
+        showToast('❌ Error updating lead', 'error');
+        cancelInlineEdit(rowNum);
     }
 }
 
-// Close edit modal
-function closeEditModal() {
-    document.getElementById('edit-modal').classList.remove('show');
+// Cancel inline edit
+function cancelInlineEdit(rowNum) {
+    // Just reload the data to restore original view
+    loadLeads();
+    delete originalRowData[rowNum];
 }
-
-// Handle edit form submission
-document.addEventListener('DOMContentLoaded', function() {
-    // Existing initialization code...
-    
-    // Add edit form handler
-    const editForm = document.getElementById('edit-lead-form');
-    if (editForm) {
-        editForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const rowNum = document.getElementById('edit-row-num').value;
-            const formData = new FormData(this);
-            
-            try {
-                const response = await fetch(`/api/leads/${rowNum}`, {
-                    method: 'PUT',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showToast('✅ Lead updated successfully!');
-                    closeEditModal();
-                    loadLeads();
-                    loadStats();
-                } else {
-                    showToast('❌ Error updating lead', 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('❌ Error updating lead', 'error');
-            }
-        });
-    }
-    
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const modal = document.getElementById('edit-modal');
-        if (event.target === modal) {
-            closeEditModal();
-        }
-    }
-});
 
 // Utility functions
 function escapeHtml(text) {

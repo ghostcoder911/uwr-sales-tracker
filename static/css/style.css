@@ -525,6 +525,7 @@ tbody td {
 .action-buttons {
     display: flex;
     gap: 5px;
+    flex-wrap: wrap;
 }
 
 .btn-edit {
@@ -542,5 +543,75 @@ tbody td {
 .btn-edit:hover {
     background: #2980b9;
     transform: translateY(-1px);
+}
+
+.btn-save {
+    background: #27ae60;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-save:hover {
+    background: #229954;
+    transform: translateY(-1px);
+}
+
+.btn-cancel {
+    background: #95a5a6;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    background: #7f8c8d;
+    transform: translateY(-1px);
+}
+
+/* Inline editing styles */
+.inline-edit-input,
+.inline-edit-select,
+.inline-edit-textarea {
+    width: 100%;
+    padding: 6px 8px;
+    border: 2px solid #3498db;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fff8e1;
+}
+
+.inline-edit-input:focus,
+.inline-edit-select:focus,
+.inline-edit-textarea:focus {
+    outline: none;
+    border-color: #2980b9;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.inline-edit-textarea {
+    resize: vertical;
+    min-height: 50px;
+}
+
+/* Highlight row being edited */
+.editing-row {
+    background-color: #fff8e1 !important;
+    border: 2px solid #3498db;
+}
+
+.editing-row td {
+    background-color: #fff8e1 !important;
 }
 
