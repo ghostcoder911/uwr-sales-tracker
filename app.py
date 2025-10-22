@@ -157,6 +157,82 @@ async def toggle_star(row_num: int):
             return {"success": True, "message": "Star toggled"}
         return {"success": False, "error": "Invalid row number"}
 
+@app.get("/api/leads/{row_num}")
+async def get_lead(row_num: int):
+    """Get a single lead for editing"""
+    if sheets_available and worksheet:
+        try:
+            all_records = worksheet.get_all_records()
+            if 0 <= row_num - 1 < len(all_records):
+                return {"success": True, "data": all_records[row_num - 1]}
+            return {"success": False, "error": "Lead not found"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    else:
+        if 0 <= row_num - 1 < len(sales_data):
+            return {"success": True, "data": sales_data[row_num - 1]}
+        return {"success": False, "error": "Lead not found"}
+
+@app.put("/api/leads/{row_num}")
+async def update_lead(
+    row_num: int,
+    institution: str = Form(...),
+    contact_person: str = Form(...),
+    phone: str = Form(...),
+    email: str = Form(""),
+    status: str = Form(...),
+    followup_date: str = Form(""),
+    requirements: str = Form(""),
+    proposal_shared: str = Form(""),
+    remarks: str = Form(""),
+    added_by: str = Form("Team Member")
+):
+    """Update an existing lead"""
+    if sheets_available and worksheet:
+        try:
+            # Row numbering: row 1 is headers, data starts at row 2
+            actual_row = row_num + 1
+            
+            # Get current star status
+            current_star = worksheet.cell(actual_row, 2).value
+            
+            # Update the row with new data
+            worksheet.update(f'A{actual_row}:L{actual_row}', [[
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                current_star or '',
+                institution,
+                contact_person,
+                phone,
+                email,
+                status,
+                followup_date,
+                requirements,
+                proposal_shared,
+                remarks,
+                added_by
+            ]])
+            return {"success": True, "message": "Lead updated successfully!"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    else:
+        if 0 <= row_num - 1 < len(sales_data):
+            sales_data[row_num - 1] = {
+                'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'Important': sales_data[row_num - 1].get('Important', ''),
+                'Institution': institution,
+                'Contact Person': contact_person,
+                'Phone': phone,
+                'Email': email,
+                'Status': status,
+                'Follow-up Date': followup_date,
+                'Requirements': requirements,
+                'Proposal Shared': proposal_shared,
+                'Remarks': remarks,
+                'Added By': added_by
+            }
+            return {"success": True, "message": "Lead updated successfully!"}
+        return {"success": False, "error": "Invalid row number"}
+
 @app.delete("/api/leads/{row_num}")
 async def delete_lead(row_num: int):
     """Delete a lead"""

@@ -101,9 +101,14 @@ function displayLeads(leads) {
                 <td>${truncate(lead.Remarks, 50)}</td>
                 <td><em>${escapeHtml(lead['Added By'] || 'Unknown')}</em></td>
                 <td>
-                    <button class="btn btn-danger btn-small" onclick="deleteLead(${rowNum})">
-                        🗑️ Delete
-                    </button>
+                    <div class="action-buttons">
+                        <button class="btn-edit" onclick="editLead(${rowNum})">
+                            ✏️ Edit
+                        </button>
+                        <button class="btn btn-danger btn-small" onclick="deleteLead(${rowNum})">
+                            🗑️
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -248,6 +253,90 @@ function showToast(message, type = 'success') {
         toast.classList.remove('show');
     }, 3000);
 }
+
+// Edit lead
+async function editLead(rowNum) {
+    try {
+        // Fetch lead data
+        const response = await fetch(`/api/leads/${rowNum}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const lead = result.data;
+            
+            // Populate edit form
+            document.getElementById('edit-row-num').value = rowNum;
+            document.getElementById('edit-institution').value = lead.Institution || '';
+            document.getElementById('edit-contact_person').value = lead['Contact Person'] || '';
+            document.getElementById('edit-phone').value = lead.Phone || '';
+            document.getElementById('edit-email').value = lead.Email || '';
+            document.getElementById('edit-status').value = lead.Status || 'New Lead';
+            document.getElementById('edit-followup_date').value = lead['Follow-up Date'] || '';
+            document.getElementById('edit-requirements').value = lead.Requirements || '';
+            document.getElementById('edit-proposal_shared').value = lead['Proposal Shared'] || '';
+            document.getElementById('edit-remarks').value = lead.Remarks || '';
+            document.getElementById('edit-added_by').value = lead['Added By'] || '';
+            
+            // Show modal
+            document.getElementById('edit-modal').classList.add('show');
+        } else {
+            showToast('Error loading lead data', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Error loading lead data', 'error');
+    }
+}
+
+// Close edit modal
+function closeEditModal() {
+    document.getElementById('edit-modal').classList.remove('show');
+}
+
+// Handle edit form submission
+document.addEventListener('DOMContentLoaded', function() {
+    // Existing initialization code...
+    
+    // Add edit form handler
+    const editForm = document.getElementById('edit-lead-form');
+    if (editForm) {
+        editForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const rowNum = document.getElementById('edit-row-num').value;
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch(`/api/leads/${rowNum}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('✅ Lead updated successfully!');
+                    closeEditModal();
+                    loadLeads();
+                    loadStats();
+                } else {
+                    showToast('❌ Error updating lead', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('❌ Error updating lead', 'error');
+            }
+        });
+    }
+    
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('edit-modal');
+        if (event.target === modal) {
+            closeEditModal();
+        }
+    }
+});
 
 // Utility functions
 function escapeHtml(text) {

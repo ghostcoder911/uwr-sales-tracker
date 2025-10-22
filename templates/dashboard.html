@@ -171,6 +171,92 @@
         </div>
     </div>
 
+    <!-- Edit Lead Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Lead</h2>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            
+            <form id="edit-lead-form" class="lead-form">
+                <input type="hidden" id="edit-row-num" name="row_num">
+                
+                <div class="form-section">
+                    <h3>Lead Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="edit-institution">Institution *</label>
+                            <input type="text" id="edit-institution" name="institution" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-contact_person">Contact Person *</label>
+                            <input type="text" id="edit-contact_person" name="contact_person" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-phone">Phone *</label>
+                            <input type="tel" id="edit-phone" name="phone" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-email">Email</label>
+                            <input type="email" id="edit-email" name="email">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-status">Status *</label>
+                            <select id="edit-status" name="status" required>
+                                <option value="New Lead">New Lead</option>
+                                <option value="Contacted">Contacted</option>
+                                <option value="Interested">Interested</option>
+                                <option value="Proposal Sent">Proposal Sent</option>
+                                <option value="Negotiating">Negotiating</option>
+                                <option value="Closed Won">Closed Won</option>
+                                <option value="Closed Lost">Closed Lost</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-followup_date">Follow-up Date</label>
+                            <input type="date" id="edit-followup_date" name="followup_date">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Additional Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="edit-requirements">Requirements</label>
+                        <textarea id="edit-requirements" name="requirements" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-proposal_shared">Proposal Shared</label>
+                        <textarea id="edit-proposal_shared" name="proposal_shared" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-remarks">Remarks</label>
+                        <textarea id="edit-remarks" name="remarks" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-added_by">Added By *</label>
+                        <input type="text" id="edit-added_by" name="added_by" required>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">❌ Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast" class="toast"></div>
 
