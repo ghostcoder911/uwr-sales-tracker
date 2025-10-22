@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UWR Sales Tracker - Team Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo">UWR</div>
+                <div class="company-name">UNIQUE WORLD ROBOTICS</div>
+            </div>
+            <div class="header-title">
+                <h1>Professional Sales Tracker</h1>
+                <p>Team Collaboration Dashboard</p>
+            </div>
+            <div class="stats-section">
+                <div class="stat">
+                    <span class="stat-label">Total Calls:</span>
+                    <span class="stat-value" id="total-calls">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Active Leads:</span>
+                    <span class="stat-value" id="active-leads">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Important:</span>
+                    <span class="stat-value" id="important-leads">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('add-lead')">📝 Add New Lead</button>
+            <button class="tab-btn" onclick="showTab('view-leads')">📊 View All Leads</button>
+        </div>
+
+        <!-- Add Lead Tab -->
+        <div id="add-lead" class="tab-content active">
+            <div class="card">
+                <h2>Add New Sales Call</h2>
+                
+                <form id="add-lead-form" class="lead-form">
+                    <div class="form-section">
+                        <h3>Lead Information</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="institution">Institution *</label>
+                                <input type="text" id="institution" name="institution" required 
+                                       placeholder="Enter institution name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="contact_person">Contact Person *</label>
+                                <input type="text" id="contact_person" name="contact_person" required
+                                       placeholder="Enter contact person name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="phone">Phone *</label>
+                                <input type="tel" id="phone" name="phone" required
+                                       placeholder="Enter phone number">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email"
+                                       placeholder="Enter email address">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="status">Status *</label>
+                                <select id="status" name="status" required>
+                                    <option value="New Lead">New Lead</option>
+                                    <option value="Contacted">Contacted</option>
+                                    <option value="Interested">Interested</option>
+                                    <option value="Proposal Sent">Proposal Sent</option>
+                                    <option value="Negotiating">Negotiating</option>
+                                    <option value="Closed Won">Closed Won</option>
+                                    <option value="Closed Lost">Closed Lost</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="followup_date">Follow-up Date</label>
+                                <input type="date" id="followup_date" name="followup_date">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Additional Information</h3>
+                        
+                        <div class="form-group">
+                            <label for="requirements">Requirements</label>
+                            <textarea id="requirements" name="requirements" rows="3"
+                                      placeholder="Enter client requirements"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="proposal_shared">Proposal Shared</label>
+                            <textarea id="proposal_shared" name="proposal_shared" rows="2"
+                                      placeholder="Enter proposal files shared"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="remarks">Remarks</label>
+                            <textarea id="remarks" name="remarks" rows="3"
+                                      placeholder="Enter additional remarks"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="added_by">Added By *</label>
+                            <input type="text" id="added_by" name="added_by" required
+                                   placeholder="Your name" value="">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">➕ Add Sales Call</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearForm()">🗑️ Clear Form</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- View Leads Tab -->
+        <div id="view-leads" class="tab-content">
+            <div class="card">
+                <div class="table-header">
+                    <h2>Sales Calls Overview</h2>
+                    <div class="table-actions">
+                        <input type="text" id="search" placeholder="🔍 Search..." onkeyup="filterTable()">
+                        <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="leads-table">
+                        <thead>
+                            <tr>
+                                <th>⭐</th>
+                                <th>Institution</th>
+                                <th>Contact</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Follow-up</th>
+                                <th>Requirements</th>
+                                <th>Proposal</th>
+                                <th>Remarks</th>
+                                <th>Added By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leads-tbody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
+
